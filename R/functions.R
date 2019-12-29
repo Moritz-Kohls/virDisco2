@@ -857,7 +857,9 @@ mapping_bowtie2 = function ( file_indices = rep(NA_integer_,0) , reference_genom
 #' @importFrom ggplot2 scale_colour_manual
 #' @importFrom ggplot2 scale_linetype_manual
 #' @importFrom ggplot2 scale_size_manual
+#' @importFrom ggplot2 labs
 #' @importFrom ggsci scale_fill_npg
+#' @importFrom ggsci scale_colour_npg
 #' @importFrom ggpubr ggarrange
 #' @importFrom seqTools char2ascii
 #'
