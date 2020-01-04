@@ -76,7 +76,8 @@ create_directories_and_file_paths = function ( sam.directory , excel.directory ,
   # New simulation results:
 
   # Directories:
-  metasimulations.subdirectory = paste0(metasimulations.directory,"/bowtie2/")
+  #metasimulations.subdirectory = paste0(metasimulations.directory,"/bowtie2/")
+  metasimulations.subdirectory = paste0(metasimulations.directory,"/")
   metasimulations.temp.directory <<- paste0(metasimulations.subdirectory,"temp/")
   metasimulations.fastq.directory = paste0(metasimulations.subdirectory,"fastq/")
   metasimulations.rds_objects.directory = paste0(metasimulations.subdirectory,"RDS_objects/")
@@ -1009,7 +1010,12 @@ sim_sam_graphics = function ( file_indices = rep(NA_integer_,0) ) {
       quality_values.not_identical.phred.new.sim[j] = median(my.vector)
     }
 
-    my.data_frame = data.frame(Quantile_Values = c(quality_values.identical.phred.new,quality_values.not_identical.phred.new,quality_values.identical.phred.new.sim,quality_values.not_identical.phred.new.sim),
+    my.lengths = numeric(4)
+    my.lengths[1] = length(quality_values.identical.phred.new)
+    my.lengths[2] = length(quality_values.not_identical.phred.new)
+    my.lengths[3] = length(quality_values.identical.phred.new.sim)
+    my.lengths[4] = length(quality_values.not_identical.phred.new.sim)
+    my.data_frame = data.frame(Quantile_Values = c(quality_values.identical.phred.new[1:min(my.lengths)],quality_values.not_identical.phred.new[1:min(my.lengths)],quality_values.identical.phred.new.sim[1:min(my.lengths)],quality_values.not_identical.phred.new.sim[1:min(my.lengths)]),
                                Medians = c(rep("orig., ident.",max.read_length),rep("orig., not ident.",max.read_length),rep("sim., ident.",max.read_length),rep("sim., not ident.",max.read_length)),
                                Position = rep(1:max.read_length,4))
     my.data_frame$Medians = factor(my.data_frame$Medians,levels=unique(my.data_frame$Medians))
