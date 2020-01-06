@@ -142,8 +142,6 @@ create_directories_and_file_paths = function ( sam.directory , excel.directory ,
 #' @return None
 #'
 #' @examples
-#' \dontrun{extract_information_from_reference_genome(formatted.reference_genome_fasta.file_path = "/home/username/formatted_reference_genome.fasta")}
-#' \dontrun{extract_information_from_reference_genome(formatted.reference_genome_fasta.file_path = "/home/moritz/ag_bioinf/genomes/viruses_na/viral.genomic.formatted.fna")}
 #' extract_information_from_reference_genome(formatted.reference_genome_fasta.file_path = file.choose()) # Path of formatted reference genome fasta file
 #' @export
 extract_information_from_reference_genome = function ( formatted.reference_genome_fasta.file_path ) {

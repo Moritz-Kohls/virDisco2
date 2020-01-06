@@ -23,7 +23,5 @@ about the NC numbers, species, sequences and sequence lengths.
 These information are stored as global variables for the simulation procedure afterwards.
 }
 \examples{
-\dontrun{extract_information_from_reference_genome(formatted.reference_genome_fasta.file_path = "/home/username/formatted_reference_genome.fasta")}
-\dontrun{extract_information_from_reference_genome(formatted.reference_genome_fasta.file_path = "/home/moritz/ag_bioinf/genomes/viruses_na/viral.genomic.formatted.fna")}
 extract_information_from_reference_genome(formatted.reference_genome_fasta.file_path = file.choose()) # Path of formatted reference genome fasta file
 }
