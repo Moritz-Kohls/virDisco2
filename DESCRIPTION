@@ -2,7 +2,7 @@ Package: virDisco2
 Imports: seqTools, ggplot2, ggsci, ggpubr, Rbowtie2, rChoiceDialogs, xlsx
 Type: Package
 Title: Virus Discovery
-Version: 0.1
+Version: 1.0
 Authors@R: person("Moritz", "Kohls", email = "moritz.kohls@tiho-hannover.de",
                   role = c("aut", "cre"))
 Description: A refined approach for generating decoy reads together with a strategy of resampling from the original findings is proposed in order to estimate error rates more accurately and to assess the reproducibility of results. The first step of the new approach is to estimate the statistical distributions from the original mapping file. Next, these distributions are used to simulate two new paired-end read-files (step 2) which are again mapped versus the virus reference genomes (step 3). From the new mapping results, mapping and error rates are calculated (step 4) which can help to assess the reproducibility of primary results.
