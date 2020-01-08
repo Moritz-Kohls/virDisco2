@@ -32,5 +32,5 @@ library(rChoiceDialogs)
 my.prefix = rchoose.dir() # Choose prefix (folder) of reference genome bowtie2 index files
 my.prefix = gsub("\\\\\\\\","/",my.prefix)
 my.prefix = paste0(my.prefix,"/")
-\dontrun{mapping_bowtie2 ( file_indices = 1 , reference_genome_index_bowtie2.directory = my.prefix , mapq_filter_threshold = 2 , threads = 2 )} # Takes a few seconds to run.
+mapping_bowtie2 ( file_indices = 1 , reference_genome_index_bowtie2.directory = my.prefix , mapq_filter_threshold = 2 , threads = 2 ) # Takes a few seconds to run!
 }

@@ -23,6 +23,6 @@ Before using the function \code{sim_init}, the functions \code{\link{create_dire
 }
 \examples{
 \dontrun{sim_init(file_indices=1,type_of_sam_file="init")} # Processing takes a few minutes of time!
-\dontrun{sim_init(file_indices=1,type_of_sam_file="sim")} # Execute after mapping simulated fast-files!
+\dontrun{sim_init(file_indices=1,type_of_sam_file="sim")} # Execute after mapping simulated fastq-files!
 
 }

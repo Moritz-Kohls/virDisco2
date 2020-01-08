@@ -35,5 +35,5 @@ Do not use read_counts = "density" in combination with start_positions_and_read_
 Before using the function \code{sim_fastq}, the functions \code{\link{create_directories_and_file_paths}}, \code{\link{extract_information_from_reference_genome}} and \code{\link{sim_init}} must be executed.
 }
 \examples{
-\dontrun{sim_fastq ( file_indices = 1 , read_counts = "density", start_positions_and_read_lengths = "random", seed = 42 )} # Takes a few seconds to run.
+sim_fastq ( file_indices = 1 , read_counts = "density", start_positions_and_read_lengths = "random", seed = 42 ) # Takes a few seconds to run!
 }

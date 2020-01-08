@@ -1,4 +1,3 @@
-
 #' Create directories and file paths
 #'
 #' To prepare the simulation, the user needs to specify the directory containing the sam-files
@@ -177,7 +176,7 @@ extract_information_from_reference_genome = function ( formatted.reference_genom
 #'
 #' @examples
 #' \dontrun{sim_init(file_indices=1,type_of_sam_file="init")} # Processing takes a few minutes of time!
-#' \dontrun{sim_init(file_indices=1,type_of_sam_file="sim")} # Execute after mapping simulated fast-files!
+#' \dontrun{sim_init(file_indices=1,type_of_sam_file="sim")} # Execute after mapping simulated fastq-files!
 #'
 #' @export
 sim_init = function ( file_indices = rep(NA_integer_,0) , type_of_sam_file) {
@@ -561,7 +560,7 @@ sim_init_graphics = function ( file_indices = rep(NA_integer_,0) ) {
 #' @return None
 #'
 #' @examples
-#' \dontrun{sim_fastq ( file_indices = 1 , read_counts = "density", start_positions_and_read_lengths = "random", seed = 42 )} # Takes a few seconds to run.
+#' sim_fastq ( file_indices = 1 , read_counts = "density", start_positions_and_read_lengths = "random", seed = 42 ) # Takes a few seconds to run!
 #' @export
 sim_fastq = function ( file_indices = rep(NA_integer_,0) , read_counts , start_positions_and_read_lengths , seed ) {
   set.seed(seed)
@@ -804,7 +803,7 @@ sim_fastq = function ( file_indices = rep(NA_integer_,0) , read_counts , start_p
 #' my.prefix = rchoose.dir() # Choose prefix (folder) of reference genome bowtie2 index files
 #' my.prefix = gsub("\\\\","/",my.prefix)
 #' my.prefix = paste0(my.prefix,"/")
-#' \dontrun{mapping_bowtie2 ( file_indices = 1 , reference_genome_index_bowtie2.directory = my.prefix , mapq_filter_threshold = 2 , threads = 2 )} # Takes a few seconds to run.
+#' mapping_bowtie2 ( file_indices = 1 , reference_genome_index_bowtie2.directory = my.prefix , mapq_filter_threshold = 2 , threads = 2 ) # Takes a few seconds to run!
 #' @export
 mapping_bowtie2 = function ( file_indices = rep(NA_integer_,0) , reference_genome_index_bowtie2.directory , mapq_filter_threshold = 0 , threads ) {
   if ( length(file_indices) == 0 ) {
