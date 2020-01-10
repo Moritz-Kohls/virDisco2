@@ -57,7 +57,7 @@ create_directories_and_file_paths = function ( sam.directory , excel.directory ,
 
   # Excel result files and file paths after mapping:
   excel.files = list.files(path=excel.directory,pattern=".xlsx",recursive=T)
-  indices.excel.files.error_rates = grep("error_rates",excel.files)
+  indices.excel.files.error_rates = grep("error_rates|mapped_outside_of_list",excel.files)
   if ( length(indices.excel.files.error_rates) > 0 ) {
     excel.files = excel.files [-indices.excel.files.error_rates]
   }
