@@ -1057,7 +1057,7 @@ consensus_sequence = function ( i , j ) { # i: index of sam file; j: index of ma
   ref_sequence = unname(unlist(strsplit(ref_sequence,"")))
   coverage.range = min(start_pos):max(end_pos)
   read_sequences.matrix = matrix(nrow = length(read_sequences)+16,ncol = diff(range(coverage.range))+1 )
-  read_sequences.matrix [length(read_sequences)+16,] = ref_sequence
+  read_sequences.matrix [nrow(read_sequences.matrix),1:length(ref_sequence)] = ref_sequence
   for ( k in 1:length(read_sequences) ) {
     read_sequences.matrix [length(read_sequences)-k+1,(start_pos[k]-min(start_pos)+1):(end_pos[k]-min(start_pos)+1)] = read_sequences[[k]]
   }
