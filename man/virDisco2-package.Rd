@@ -130,11 +130,24 @@ sim_fastq ( file_indices = 1 , read_counts = "density", start_positions_and_read
 # After this step, one can filter out reads with a low mapping quality.
 # The new sam-file with filtered reads is stored separately in the same directory.
 
-# library(rChoiceDialogs)
-# my.prefix = rchoose.dir() # Choose prefix (folder) of reference genome bowtie2 index files
-# my.prefix = gsub("\\\\","/",my.prefix)
-# my.prefix = paste0(my.prefix,"/")
-# mapping_bowtie2 ( file_indices = 1 , reference_genome_index_bowtie2.directory = my.prefix , mapq_filter_threshold = 2 , threads = 2 ) # Takes a few seconds to run!
+library(rChoiceDialogs)
+my.prefix = rchoose.dir() # Choose prefix (folder) of reference genome bowtie2 index files
+my.prefix = gsub("\\\\","/",my.prefix)
+my.prefix = paste0(my.prefix,"/")
+mapping_bowtie2 ( file_indices = 1 , reference_genome_index_bowtie2.directory = my.prefix , mapq_filter_threshold = 2 , threads = 2 ) # Takes a few seconds to run!
+
+########## Calculation of mapping and error rates ##########
+
+# In total, this function computes six different diagnostic parameters counting relative frequencies,
+# two mapping rates and four error rates.
+# Furthermore, there are three absolute frequencies which count all mapped reads,
+# reads that are mapped to an excel list of viruses and reads that are mapped correctly.
+# These values are calculated by using information of the mapping files of the simulated fastq-files
+# from the previous step.
+# The old excel-file from the original mapping results is completed by six columns for the diagnostic parameters
+# and saved as a new excel-file.
+
+error_rates ( file_indices = 1 )
 
 ########## Simulation initialisation ##########
 
