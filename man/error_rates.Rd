@@ -4,7 +4,7 @@
 \alias{error_rates}
 \title{Calculation of error rates}
 \usage{
-error_rates(file_indices = 1)
+error_rates(file_indices)
 }
 \arguments{
 \item{file_indices}{Indices of the mapped sam-files belonging to the simulated paired fastq-files}

@@ -17,8 +17,6 @@ The execution order of the functions of the analysis pipeline is as follows:
 \item \code{\link{sim_sam_graphics}}
 }
 
-Attention: Some functions need a few minutes processing time, so it is not advised to execute \code{example(virDisco2-package)}!
-
 }
 
 \examples{

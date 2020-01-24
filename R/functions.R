@@ -1102,7 +1102,7 @@ consensus_sequence = function ( i , j ) { # i: index of sam file; j: index of ma
 #' @examples
 #' error_rates ( file_indices = 1 )
 #' @export
-error_rates = function ( file_indices = 1 ) {
+error_rates = function ( file_indices ) {
   if ( length(file_indices) == 0 ) {
     file_indices = 1:length(metasimulations_sam.file_paths)
   }
@@ -1111,7 +1111,7 @@ error_rates = function ( file_indices = 1 ) {
   my.metasimulations_sam.file_paths = paste0(my.metasimulations_sam.file_paths,"_mapq_filtered.sam")
 
   count.file = 0
-  for ( i in file_indices ) { # For every sam file ...
+  for ( i in file_indices ) { # For every sam-file ...
     count.file = count.file + 1
     cat("Error rates file",count.file,"of",length(my.metasimulations_sam.file_paths),"\n")
     excel.file = read.xlsx(excel.file_paths[i],1,header=T)
@@ -1120,9 +1120,9 @@ error_rates = function ( file_indices = 1 ) {
     excel.file.new = excel.file
     excel.file.new$SIM.count.new = readRDS(paste0(metasimulations.rds_objects.sim_init.directories[i],"number_of_reads.belonging_to_species.new_fastq.rds"))
     mapped_reads.read_count = excel.file.new$SIM.count.new
-    excel.file.new$SIM.mapped = rep(NA_real_,number_of_rows.excel_file)
-    excel.file.new$SIM.listed = rep(NA_real_,number_of_rows.excel_file)
-    excel.file.new$SIM.correct = rep(NA_real_,number_of_rows.excel_file)
+    excel.file.new$SIM.mapped = rep(NA_integer_,number_of_rows.excel_file)
+    excel.file.new$SIM.listed = rep(NA_integer_,number_of_rows.excel_file)
+    excel.file.new$SIM.correct = rep(NA_integer_,number_of_rows.excel_file)
     excel.file.new$SIM.mapped_all.percent = rep(NA_real_,number_of_rows.excel_file)
     excel.file.new$SIM.listed_all.percent = rep(NA_real_,number_of_rows.excel_file)
     excel.file.new$SIM.correct_all.percent = rep(NA_real_,number_of_rows.excel_file)
@@ -1130,7 +1130,7 @@ error_rates = function ( file_indices = 1 ) {
     excel.file.new$SIM.correct_mapped.percent = rep(NA_real_,number_of_rows.excel_file)
     excel.file.new$SIM.correct_listed.percent = rep(NA_real_,number_of_rows.excel_file)
 
-    # Extract mapped read information from sam file:
+    # Extract mapped read information from sam-file:
 
     cat("Iteration",i,"of",length(file_indices),"\n")
     sam.file = readLines(my.metasimulations_sam.file_paths[i]) # Import sam file.
@@ -1206,5 +1206,190 @@ error_rates = function ( file_indices = 1 ) {
     if ( nrow(my.data_frame) > 0 ) {
       write.xlsx(my.data_frame,new.excel.file_path)
     }
+  }
+}
+
+#' Calculation of error rates with repeated sampling
+#'
+#' This function simulates paired fastq-files, maps these to the reference genomes
+#' and calculates mapping and error rates. The whole procedure is repeated multiple times
+#' which yields the absolute value and range of the mapping and error rates.
+#'
+#' @importFrom Rbowtie2 bowtie2
+#' @importFrom xlsx read.xlsx
+#' @importFrom xlsx write.xlsx
+#'
+#' @param file_indices Indices of the mapped sam-files belonging to the simulated paired fastq-files
+#' @param iterations Number of paired fastq-files to simulate, map and calculate mapping and error rates.
+#' @param read_counts If the number of reads are "original", the number of reads generated per virus is identical to the read counts of the sam-file.
+#' By specifying the parameter as "density", there is the possibility to change the number of reads generated randomly based on a kernel density estimation of the original number of reads mapped to the species.
+#' In the latter case, the number of reads of the mapped species which are to be generated differs slightly from the original distribution.
+#' @param start_positions_and_read_lengths If the start positions and read lengths are "original", the start positions and read lengths are taken from the original sam-files so that every read is used exactly once.
+#' In contrary, if the parameter setting is "random", the reads are sampled with replacement so that some reads may be used multiple or zero times.
+#' @param seed Seed of the random number generator used to simulate paired fastq-files
+#' @param reference_genome_index_bowtie2.directory # Prefix (folder) of bowtie2 index files
+#' @param mapq_filter_threshold # Reads with a mapping quality below this threshold will be deleted from the sam-files.
+#' @param threads Number of threads that are used for mapping
+#'
+#' @return None
+#'
+#' @examples
+#' library(rChoiceDialogs)
+#' reference_genome_index_bowtie2.directory = rchoose.dir() # Choose prefix (folder) of reference genome bowtie2 index files
+#' my.prefix = gsub("\\\\","/",reference_genome_index_bowtie2.directory)
+#' my.prefix = paste0(my.prefix,"/")
+#' \dontrun{simfastq_map_error_repeated ( file_indices = 1 , iterations = 10 , read_counts = "density", start_positions_and_read_lengths = "random" , seed = 42 ,
+#' reference_genome_index_bowtie2.directory = my.prefix , mapq_filter_threshold = 2 , threads = 2 )}
+#' @export
+simfastq_map_error_repeated = function ( file_indices , iterations , read_counts , start_positions_and_read_lengths , seed ,
+                                         reference_genome_index_bowtie2.directory , mapq_filter_threshold , threads ) {
+  if ( length(file_indices) == 0 ) {
+    file_indices = 1:length(metasimulations_sam.file_paths)
+  }
+  my.metasimulations_sam.file_paths = metasimulations_sam.file_paths [file_indices]
+  my.metasimulations_sam.file_paths = substring(my.metasimulations_sam.file_paths,1,nchar(my.metasimulations_sam.file_paths)-4)
+  my.metasimulations_sam.file_paths = paste0(my.metasimulations_sam.file_paths,"_mapq_filtered.sam")
+
+  count.file = 0
+  for ( i in file_indices ) { # For every original sam-file ...
+    count.file = count.file + 1
+    cat("Error rates file",count.file,"of",length(my.metasimulations_sam.file_paths),"\n")
+    excel.file = read.xlsx(excel.file_paths[i],1,header=T)
+    mapped_reads.NC_numbers = excel.file$Species_ID
+    number_of_rows.excel_file = dim(excel.file)[1]
+    excel.file.new = excel.file
+    SIM.count.matrix = matrix(NA_integer_, nrow = number_of_rows.excel_file, ncol = iterations)
+    SIM.mapped.matrix = matrix(NA_integer_, nrow = number_of_rows.excel_file, ncol = iterations)
+    SIM.listed.matrix = matrix(NA_integer_, nrow = number_of_rows.excel_file, ncol = iterations)
+    SIM.correct.matrix = matrix(NA_integer_, nrow = number_of_rows.excel_file, ncol = iterations)
+    SIM.mapped_all.matrix = matrix(NA_integer_, nrow = number_of_rows.excel_file, ncol = iterations)
+    SIM.listed_all.matrix = matrix(NA_integer_, nrow = number_of_rows.excel_file, ncol = iterations)
+    SIM.correct_all.matrix = matrix(NA_integer_, nrow = number_of_rows.excel_file, ncol = iterations)
+    SIM.listed_mapped.matrix = matrix(NA_integer_, nrow = number_of_rows.excel_file, ncol = iterations)
+    SIM.correct_mapped.matrix = matrix(NA_integer_, nrow = number_of_rows.excel_file, ncol = iterations)
+    SIM.correct_listed.matrix = matrix(NA_integer_, nrow = number_of_rows.excel_file, ncol = iterations)
+    excel.file.new$SIM.count.new.mean = rep(NA_integer_,number_of_rows.excel_file)
+    excel.file.new$SIM.count.new.min_max = rep(NA_integer_,number_of_rows.excel_file)
+    excel.file.new$SIM.mapped.mean = rep(NA_integer_,number_of_rows.excel_file)
+    excel.file.new$SIM.mapped.min_max = rep(NA_integer_,number_of_rows.excel_file)
+    excel.file.new$SIM.listed.mean = rep(NA_integer_,number_of_rows.excel_file)
+    excel.file.new$SIM.listed.min_max = rep(NA_integer_,number_of_rows.excel_file)
+    excel.file.new$SIM.correct.mean = rep(NA_integer_,number_of_rows.excel_file)
+    excel.file.new$SIM.correct.min_max = rep(NA_integer_,number_of_rows.excel_file)
+    excel.file.new$SIM.mapped_all.percent.mean = rep(NA_real_,number_of_rows.excel_file)
+    excel.file.new$SIM.mapped_all.percent.min_max = rep(NA_real_,number_of_rows.excel_file)
+    excel.file.new$SIM.listed_all.percent.mean = rep(NA_real_,number_of_rows.excel_file)
+    excel.file.new$SIM.listed_all.percent.min_max = rep(NA_real_,number_of_rows.excel_file)
+    excel.file.new$SIM.correct_all.percent.mean = rep(NA_real_,number_of_rows.excel_file)
+    excel.file.new$SIM.correct_all.percent.min_max = rep(NA_real_,number_of_rows.excel_file)
+    excel.file.new$SIM.listed_mapped.percent.mean = rep(NA_real_,number_of_rows.excel_file)
+    excel.file.new$SIM.listed_mapped.percent.min_max = rep(NA_real_,number_of_rows.excel_file)
+    excel.file.new$SIM.correct_mapped.percent.mean = rep(NA_real_,number_of_rows.excel_file)
+    excel.file.new$SIM.correct_mapped.percent.min_max = rep(NA_real_,number_of_rows.excel_file)
+    excel.file.new$SIM.correct_listed.percent.mean = rep(NA_real_,number_of_rows.excel_file)
+    excel.file.new$SIM.correct_listed.percent.min_max = rep(NA_real_,number_of_rows.excel_file)
+
+    for ( iteration in 1:iterations ) {
+      sim_fastq(file_indices = i, read_count = read_counts, start_positions_and_read_lengths = start_positions_and_read_lengths, seed = seed + iteration) # Simulate paired fastq-files
+      mapping_bowtie2(file_indices = i, reference_genome_index_bowtie2.directory = my.prefix, mapq_filter_threshold = mapq_filter_threshold, threads = threads) # Map simulated fastq-file
+
+      # Extract mapped read information from sam-file:
+
+      cat("Iteration",iteration,"of",iterations,"\n")
+      sam.file = readLines(my.metasimulations_sam.file_paths[i]) # Import sam file.
+      sam.file = strsplit(sam.file,"\t")
+      sam.file = sapply(sam.file,FUN = function(x) x[1:11]) # Only first 11 columns are important.
+      sam.file = t(sam.file)
+
+      colnames(sam.file) = c("QNAME","FLAG","RNAME","POS","MAPQ","CIGAR","RNEXT","PNEXT","TLEN","SEQ","QUAL")
+      sam.file = as.data.frame(sam.file)
+      sam.file$QNAME = as.character(sam.file$QNAME)
+      sam.file$FLAG = as.numeric(as.character(sam.file$FLAG))
+      sam.file$RNAME = as.factor(sam.file$RNAME)
+      sam.file$POS = as.numeric(as.character(sam.file$POS))
+      sam.file$MAPQ = as.numeric(as.character(sam.file$MAPQ))
+      sam.file$CIGAR = as.character(sam.file$CIGAR)
+      sam.file$RNEXT = as.character(sam.file$RNEXT)
+      sam.file$PNEXT = as.character(sam.file$PNEXT)
+      sam.file$TLEN = as.character(sam.file$TLEN)
+      sam.file$SEQ = as.character(sam.file$SEQ)
+      sam.file$QUAL = as.character(sam.file$QUAL)
+
+      sam.file = sam.file [ complete.cases(sam.file[,c(3,4,5,9,10,11)]) , ] # Delete rows that contain at least one NA in specific columns.
+      sam.file = sam.file [ which ( sam.file$RNAME != "*" ) , ] # Filter unmapped reads (should be done already).
+      my.indices = match(sam.file$RNAME,reference_genome.NC_numbers)
+      sam.file = sam.file [ which(!is.na(my.indices)) , ] # Filter reads not found in the reference genome.
+      sam.file$RNAME = factor(sam.file$RNAME) # Drop unused levels.
+
+      QNAME = sam.file$QNAME
+      position.of.colon = regexpr(":",QNAME)
+      QNAME.short = substring(QNAME,1,position.of.colon-1)
+
+      SIM.count.matrix[,iteration] = mapped_reads.read_count = readRDS(paste0(metasimulations.rds_objects.sim_init.directories[i],"number_of_reads.belonging_to_species.new_fastq.rds"))
+      for ( j in 1:number_of_rows.excel_file ) {
+        my.sam.file = subset(sam.file,QNAME.short == mapped_reads.NC_numbers[j])
+        my.RNAME = my.sam.file$RNAME
+
+        count.Omega = mapped_reads.read_count[j] * 2
+        count.M = nrow(my.sam.file)
+        count.M_list = sum( my.RNAME %in% as.character(mapped_reads.NC_numbers))
+        my.indices = which ( my.RNAME %in% as.character(mapped_reads.NC_numbers) == FALSE )
+        count.C = sum(my.RNAME == as.character(mapped_reads.NC_numbers[j]))
+
+        mapped_all.percent = round(count.M / count.Omega * 100,1)
+        listed_all.percent = round(count.M_list / count.Omega * 100,1)
+        correct_all.percent = round(count.C / count.Omega * 100,1)
+        listed_mapped.percent = round(count.M_list / count.M * 100,1)
+        correct_mapped.percent = round(count.C / count.M * 100,1)
+        correct_listed.percent = round(count.C / count.M_list * 100,1)
+        mapped = count.M
+        listed = count.M_list
+        correct = count.C
+
+        SIM.mapped.matrix[j,iteration] = mapped
+        SIM.listed.matrix[j,iteration] = listed
+        SIM.correct.matrix[j,iteration] = correct
+        SIM.mapped_all.matrix[j,iteration] = mapped_all.percent
+        SIM.listed_all.matrix[j,iteration] = listed_all.percent
+        SIM.correct_all.matrix[j,iteration] = correct_all.percent
+        SIM.listed_mapped.matrix[j,iteration] = listed_mapped.percent
+        SIM.correct_mapped.matrix[j,iteration] = correct_mapped.percent
+        SIM.correct_listed.matrix[j,iteration] = correct_listed.percent
+      }
+    }
+
+    excel.file.new$SIM.count.new.mean = round(apply(SIM.count.matrix,1,FUN=function(x)mean(x,na.rm=T)),digits=1)
+    my.range = apply(SIM.count.matrix,1,FUN=function(x)range(x,na.rm=T))
+    excel.file.new$SIM.count.new.min_max = paste(my.range[1,],"-",my.range[2,])
+    excel.file.new$SIM.mapped.mean = round(apply(SIM.mapped.matrix,1,FUN=function(x)mean(x,na.rm=T)),digits=1)
+    my.range = apply(SIM.mapped.matrix,1,FUN=function(x)range(x,na.rm=T))
+    excel.file.new$SIM.mapped.min_max = paste(my.range[1,],"-",my.range[2,])
+    excel.file.new$SIM.listed.mean = round(apply(SIM.listed.matrix,1,FUN=function(x)mean(x,na.rm=T)),digits=1)
+    my.range = apply(SIM.listed.matrix,1,FUN=function(x)range(x,na.rm=T))
+    excel.file.new$SIM.listed.min_max = paste(my.range[1,],"-",my.range[2,])
+    excel.file.new$SIM.correct.mean = round(apply(SIM.correct.matrix,1,FUN=function(x)mean(x,na.rm=T)),digits=1)
+    my.range = apply(SIM.correct.matrix,1,FUN=function(x)range(x,na.rm=T))
+    excel.file.new$SIM.correct.min_max = paste(my.range[1,],"-",my.range[2,])
+    excel.file.new$SIM.mapped_all.percent.mean = round(apply(SIM.mapped_all.matrix,1,FUN=function(x)mean(x,na.rm=T)),digits=1)
+    my.range = apply(SIM.mapped_all.matrix,1,FUN=function(x)range(x,na.rm=T))
+    excel.file.new$SIM.mapped_all.percent.min_max = paste(my.range[1,],"-",my.range[2,])
+    excel.file.new$SIM.listed_all.percent.mean = round(apply(SIM.listed_all.matrix,1,FUN=function(x)mean(x,na.rm=T)),digits=1)
+    my.range = apply(SIM.listed_all.matrix,1,FUN=function(x)range(x,na.rm=T))
+    excel.file.new$SIM.listed_all.percent.min_max = paste(my.range[1,],"-",my.range[2,])
+    excel.file.new$SIM.correct_all.percent.mean = round(apply(SIM.correct_all.matrix,1,FUN=function(x)mean(x,na.rm=T)),digits=1)
+    my.range = apply(SIM.correct_all.matrix,1,FUN=function(x)range(x,na.rm=T))
+    excel.file.new$SIM.correct_all.percent.min_max = paste(my.range[1,],"-",my.range[2,])
+    excel.file.new$SIM.listed_mapped.percent.mean = round(apply(SIM.listed_mapped.matrix,1,FUN=function(x)mean(x,na.rm=T)),digits=1)
+    my.range = apply(SIM.listed_mapped.matrix,1,FUN=function(x)range(x,na.rm=T))
+    excel.file.new$SIM.listed_mapped.percent.min_max = paste(my.range[1,],"-",my.range[2,])
+    excel.file.new$SIM.correct_mapped.percent.mean = round(apply(SIM.correct_mapped.matrix,1,FUN=function(x)mean(x,na.rm=T)),digits=1)
+    my.range = apply(SIM.correct_mapped.matrix,1,FUN=function(x)range(x,na.rm=T))
+    excel.file.new$SIM.correct_mapped.percent.min_max = paste(my.range[1,],"-",my.range[2,])
+    excel.file.new$SIM.correct_listed.percent.mean = round(apply(SIM.correct_listed.matrix,1,FUN=function(x)mean(x,na.rm=T)),digits=1)
+    my.range = apply(SIM.correct_listed.matrix,1,FUN=function(x)range(x,na.rm=T))
+    excel.file.new$SIM.correct_listed.percent.min_max = paste(my.range[1,],"-",my.range[2,])
+
+    new.excel.file_path = paste0(substring(excel.file_paths[i],1,nchar(excel.file_paths[i])-5),"_error_rates_repeated.xlsx")
+    write.xlsx(excel.file.new,new.excel.file_path)
   }
 }
